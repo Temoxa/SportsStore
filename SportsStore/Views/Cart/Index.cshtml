@@ -1,0 +1,46 @@
+﻿@model CartIndexViewModel
+
+<h2>Ваша корзина</h2>
+<div asp-validation-summary="All" class="text-danger"></div>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Quantity</th>
+            <th>Item</th>
+            <th class="text-right">Price</th>
+            <th class="text-right">Subtotal</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Cart.Lines)
+        {
+            <tr>
+                <td class="text-center">@item.Quantity</td>
+                <td class="text-left">@item.Product.Name</td>
+                <td class="text-right">@item.Product.Price.ToString("C")</td>
+                <td class="text-right">@((item.Quantity * item.Product.Price).ToString("C"))</td>
+                <td>
+                    <form asp-action="RemoveFromCart" method="post">
+                        <input type="hidden" name="ProductID" value="@item.Product.ProductID"/>
+                        <input type="hidden" name="returnUrl" value="@Model.ReturnUrl"/>
+                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-right">Всего:</td>
+            <td class="text-right">@Model.Cart.ComputeTotalValues().ToString("C")</td>
+        </tr>
+    </tfoot>
+</table>
+<div class="text-center">
+    <a class="btn btn-primary" href="@Model.ReturnUrl">Продолжить покупки</a>
+    @if  (Model.Cart.Lines.Count() > 0)
+    {
+    <a class=" btn btn-success" asp-controller="Order" asp-action="Checkout">ChechOut</a>    
+    } 
+</div>
