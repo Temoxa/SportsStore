@@ -8,9 +8,9 @@ namespace SportsStore.Models
     public class FakeProductRepository : IProductRepository
     {
         public IEnumerable<Product> Products => new List<Product> {
-            new Product { Name = "Football", Price = 25 },
-            new Product { Name = "Surf board", Price = 179 },
-            new Product { Name = "Running shoes", Price = 95 }
+            new Product { Name = "Football", Price = 25, Category = "Category1" },
+            new Product { Name = "Surf board", Price = 179, Category = "Category1" },
+            new Product { Name = "Running shoes", Price = 95, Category = "Category2" }
         };
 
         public Product DeleteProduct(int productID)
