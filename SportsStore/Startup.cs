@@ -10,6 +10,7 @@ using SportsStore.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Server.IISIntegration;
+using Microsoft.AspNetCore.Identity;
 
 namespace SportsStore
 {
@@ -35,6 +36,10 @@ namespace SportsStore
             services.AddMemoryCache(); //Добавление хранилища данных в памяти
             services.AddSession(); //Регистрация службы, которая настраивает сеансы
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ProductsConnection")));
+
+            services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("IdentityConnection")));
+            services.AddIdentity<IdentityUser, IdentityRole>()
+                    .AddEntityFrameworkStores<AppIdentityDbContext>();//Тип хранилища пользователей и ролей
             //Внедряем зависимость хранилища, теперь можно везде юзать в параметрах IProdcutRepository,
             //а реалзиация будет назначаться на класс FakeProductRepository, который потом можно удобно сменить
             //services.AddTransient<IProductRepository, FakeProductRepository>();
@@ -42,17 +47,17 @@ namespace SportsStore
             services.AddTransient<IOrderRepository, EFOrderRepository>();
             services.AddScoped(sp => SessionCart.GetCart(sp)); //Теперь для получения объекта SessionCart будет использоваться метод GetCart
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            
 
-            //AddScoped() - эти службы создаются один раз за запрос.
+            //AddScoped() - эти службы создаются один раз за http запрос.
             //AddTransient() - эти службы создаются каждый раз, когда они запрашиваются.
-            //AddSingleton() - These services are created the first time they are requested and stay the same for subsequent requests.
+            //AddSingleton() - эти службы создаются при старте сервисаы
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ApplicationDbContext dbContext)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ApplicationDbContext dbContext, AppIdentityDbContext dbIdentityContext)
         {
             SeedData.Initialize(dbContext);
+            IdentitySeedData.EnsurePopulated(app);
 
             if (env.IsDevelopment())
             {
@@ -62,6 +67,8 @@ namespace SportsStore
             app.UseStaticFiles();
             app.UseStatusCodePages(); //Добавляет коды ответов в http response
             app.UseSession(); //Позволяет службе сеансов автоматически ассоциировать запросы с сеансами
+            app.UseAuthentication(); //Авторизация + аутентификация
+            //app.UseIdentity(); //Устаревшее
             //app.UseMvcWithDefaultRoute(); //Стандартный роут в приложении MVC
             app.UseMvc(routes =>
             {
